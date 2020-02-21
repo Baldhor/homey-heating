@@ -68,7 +68,7 @@
     "tslint": "^5.20.1",
     "typescript": "^3.7.2",
     "typescript-tslint-plugin": "^0.5.5",
-    "unzipper": "^0.10.5",
+    "unzipper": "^0.10.9",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0"
