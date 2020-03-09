@@ -2,7 +2,7 @@
 import "reflect-metadata";
 // position must not be changed
 
-import { AsyncDebounce } from "@app/helper";
+import { AsyncDebounce, Mutex, synchronize } from "@app/helper";
 import { ICalculatedTemperature, IHeatingPlan, NormalOperationMode, ThermostatMode } from "@app/model";
 import {
     AuditedDevice, BootStrapper, CapabilityChangedEventArgs, CapabilityType, DeviceManagerService,
@@ -21,6 +21,8 @@ type Data = {
 };
 
 class VirtualThermostat extends Device implements IVirtualThermostat {
+    private static Lock = new Mutex();
+
     private devices!: DeviceManagerService;
     private repository!: HeatingPlanRepositoryService;
     private manager!: HeatingManagerService;
@@ -34,6 +36,8 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
     private repositoryChanged!: IEventHandler<HeatingPlanRepositoryService, PlansChangedEventArgs>;
     private capabilitiesChanged!: IEventHandler<DeviceManagerService, CapabilityChangedEventArgs>;
     private plansApplied!: IEventHandler<HeatingManagerService, PlansAppliedEventArgs>;
+
+    private taskId: any = null;
 
     @trycatchlog(true)
     public async onInit() {
@@ -72,10 +76,18 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
         this.plan = await this.repository.find(this.id);
         await this.updateCapabilitiesFromPlan();
         await this.updateTemperature();
+
+        await this.registerTasks();
     }
 
     @trycatchlog(true)
+    @synchronize(VirtualThermostat.Lock)
     public async onDeleted() {
+        if (this.taskId) {
+            clearTimeout(this.taskId);
+            this.taskId = null;
+        }
+
         this.repository.onChanged.unsubscribe(this.repositoryChanged);
         this.devices.onCapabilityChanged.unsubscribe(this.capabilitiesChanged);
         this.manager.onPlansApplied.unsubscribe(this.plansApplied);
@@ -235,6 +247,7 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
      * Update all capabilities that depend on the plan.
      */
     @trycatchlog(true)
+    @synchronize(VirtualThermostat.Lock)
     private async updateCapabilitiesFromPlan() {
         this.logger.debug(`Updating ${CapabilityType.ThermostatOverride} and ${CapabilityType.TargetTemperature}`);
 
@@ -275,6 +288,7 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
      * @param opts unused
      */
     @trycatchlog(true)
+    @synchronize(VirtualThermostat.Lock)
     private async onThermostatModeChanged(value: string, _opts: any) {
         if (this.plan == null) { return; } // should not happen unavailable
         this.logger.information(`${CapabilityType.ThermostatOverride} ${value}`);
@@ -293,6 +307,7 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
      * @param opts unsused
      */
     @trycatchlog(true)
+    @synchronize(VirtualThermostat.Lock)
     private async onTargetTemperatureChanged(value: number, _opts: any) {
         if (this.plan == null) { return; } // should not happen unavailable
 
@@ -313,6 +328,18 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
             }
         }
 
+        await this.propagateTargetTemperature(value);
+    }
+
+    /**
+     * Propagate target temperature to all devices
+     *
+     * @param value The target temperature
+     */
+    @trycatchlog(true)
+    private async propagateTargetTemperature(value: number) {
+        if (this.plan == null) { return; } // should not happen unavailable
+
         const devices: AuditedDevice[] = [];
         (this.plan.devices || []).forEach((id) => {
             const dev = this.devices.findDevice(id);
@@ -332,6 +359,31 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
         } else {
             this.logger.debug(`we don't have associated devices`);
         }
+    }
+
+    // we live on our own, ok to kill
+    @trycatchlog(true)
+    @synchronize(VirtualThermostat.Lock)
+    private async scheduleTask() {
+        try {
+            this.logger.information("Running");
+
+            await this.propagateTargetTemperature(this.getCapabilityValue(CapabilityType.TargetTemperature));
+        } finally {
+            await this.registerTasks();
+        }
+    }
+
+    private async registerTasks() {
+        if (this.taskId) {
+            clearTimeout(this.taskId);
+            this.taskId = null;
+        }
+
+        this.logger.information(`Next execution in 5 minutes`);
+        this.taskId = setTimeout(() => {
+            this.scheduleTask();
+        }, 5 * 60 * 1000);
     }
 }
 
