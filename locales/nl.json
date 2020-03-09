@@ -145,6 +145,7 @@
     },
     "temperature": {
       "label": "Temperatuur",
+      "unfreeze": "Unfreeze",
       "low": "Nacht",
       "warm": "Comfort",
       "middle": "Economisch",

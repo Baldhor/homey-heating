@@ -137,6 +137,7 @@
     },
     "temperature": {
       "low": "Nacht",
+      "unfreeze": "Unfreeze",
       "warmer": "Komfort plus",
       "warm": "Komfort",
       "middle": "Economy",

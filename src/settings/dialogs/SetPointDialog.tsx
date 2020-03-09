@@ -90,10 +90,11 @@ const SetPointDialog: React.FunctionComponent<Props> = (props: Props) => {
                                 onChange={setTargetTemperature}
                                 value={setPoint.targetTemperature}
                             >
+                                <MenuItem value={7}>{translate("setpoint.temperature.unfreeze")}</MenuItem>
                                 <MenuItem value={16}>{translate("setpoint.temperature.low")}</MenuItem>
                                 <MenuItem value={18.5}>{translate("setpoint.temperature.middle")}</MenuItem>
-                                <MenuItem value={20.5}>{translate("setpoint.temperature.warm")}</MenuItem>
-                                <MenuItem value={21.5}>{translate("setpoint.temperature.warmer")}</MenuItem>
+                                <MenuItem value={21}>{translate("setpoint.temperature.warm")}</MenuItem>
+                                <MenuItem value={22}>{translate("setpoint.temperature.warmer")}</MenuItem>
                             </Select>
                         </FormControl>
                     </InputContainer>
