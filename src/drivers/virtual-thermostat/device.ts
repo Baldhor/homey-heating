@@ -109,6 +109,7 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
      * Plans in the repository changed
      */
     @trycatchlog(true)
+    @synchronize(VirtualThermostat.Lock)
     private async plansChanged(_rep: HeatingPlanRepositoryService, plans: PlansChangedEventArgs) {
         await Promise.all(plans.filter((pc) => pc.plan.id === this.id).map(async (change) => {
             // if the plan was removed => we are null
@@ -125,6 +126,7 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
      * Plan was applied
      */
     @trycatchlog(true)
+    @synchronize(VirtualThermostat.Lock)
     private async scheduleChanged(_scheduler: HeatingSchedulerService, evt: PlansAppliedEventArgs) {
         // we are removed
         if (this.plan == null) { return; }
@@ -138,7 +140,7 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
         const calculation = filter(evt.schedule, (f) => f.plan.id === this.id);
         await this.updateTemperature(calculation);
 
-        if (calculation.length > 0) {
+        if (calculation.length > 0 && this.plan.thermostatMode === NormalOperationMode.Automatic) {
             await this.doSetCapabilityValue(CapabilityType.TargetTemperature,
                 this.adjustTemperatureValue(calculation[0].targetTemperature));
         }
@@ -247,7 +249,6 @@ class VirtualThermostat extends Device implements IVirtualThermostat {
      * Update all capabilities that depend on the plan.
      */
     @trycatchlog(true)
-    @synchronize(VirtualThermostat.Lock)
     private async updateCapabilitiesFromPlan() {
         this.logger.debug(`Updating ${CapabilityType.ThermostatOverride} and ${CapabilityType.TargetTemperature}`);
 
