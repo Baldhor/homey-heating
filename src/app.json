@@ -4,9 +4,9 @@
   "compatibility": ">= 2.0.0",
   "sdk": 2,
   "name": {
-    "en": "Homey Heating Scheduler",
-    "nl": "Homey Verwarmingsregelaar",
-    "de": "Homey Heizungsplaner"
+    "en": "Baldhors's Homey Heating Scheduler",
+    "nl": "Baldhors's Homey Verwarmingsregelaar",
+    "de": "Baldhors's Homey Heizungsplaner"
   },
   "tags": {},
   "brandColor": "#2196f3",
@@ -288,8 +288,8 @@
     ]
   },
   "author": {
-    "name": "Markus Kling",
-    "email": "markus.kling@gmail.com"
+    "name": "Baldhor (fork from Markus Kling)",
+    "email": "baldhors@gmail.com"
   },
   "contributors": {
     "translators": [

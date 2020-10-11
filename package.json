@@ -1,6 +1,6 @@
 {
-  "name": "homey-heating",
-  "version": "0.0.0",
+  "name": "homey-heating-baldhor",
+  "version": "1.2.4",
   "description": "",
   "main": "app.js",
   "dependencies": {
@@ -95,17 +95,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mskg/homey-heating.git"
+    "url": "git+https://github.com/Baldhor/homey-heating.git"
   },
   "keywords": [
     "homey",
     "athom",
     "heating"
   ],
-  "author": "Markus Kling",
+  "author": "Baldhor (forked from Markus Kling)",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/mskg/homey-heating/issues"
+    "url": "https://github.com/Baldhor/homey-heating/issues"
   },
   "homepage": "https://homey-heating.mskg.app"
 }
